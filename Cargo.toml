@@ -9,4 +9,4 @@ edition = "2018"
 [dependencies]
 priority-queue = "1.1.0"
 bit-vec = "0.6"
-bitstream-io = "1.0.0"
+endio_bit = "0.2.0"
