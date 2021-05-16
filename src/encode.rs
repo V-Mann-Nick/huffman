@@ -1,16 +1,19 @@
-use super::node::Node;
 use bit_vec::BitVec;
 use priority_queue::PriorityQueue;
 use std::collections::HashMap;
 use std::iter::FromIterator;
+use super::node::Node;
 
-pub fn encode(text: &str) -> (BitVec, BitVec) {
+pub fn encode(text: &str) -> BitVec {
     let character_frequencies = character_frequencies(text);
     let root = build_tree(&character_frequencies);
     let character_codes = codes_from_root(&root);
-    let encoded_text = encode_text(text, &character_codes);
-    let encoded_tree = encode_huffman_tree(&root);
-    (encoded_tree, encoded_text)
+    let mut encoded_text = encode_text(text, &character_codes);
+    let mut encoded_tree = encode_huffman_tree(&root);
+    let mut bits = BitVec::from_bytes(&(text.chars().count() as u32).to_be_bytes());
+    bits.append(&mut encoded_tree);
+    bits.append(&mut encoded_text);
+    bits
 }
 
 fn codes_from_root(root: &Node) -> HashMap<char, BitVec> {
@@ -77,7 +80,9 @@ fn encode_huffman_tree(root: &Node) -> BitVec {
 fn encode_huffman_node(node: &Node, bits: &mut BitVec) {
     if let Some(character) = node.symbol {
         bits.push(true);
-        let mut character_bits = BitVec::from_bytes(&[character as u8]);
+        let mut buffer = [0; 4];
+        character.encode_utf8(&mut buffer);
+        let mut character_bits = BitVec::from_bytes(&buffer[0..character.len_utf8()]);
         bits.append(&mut character_bits);
     } else {
         bits.push(false);

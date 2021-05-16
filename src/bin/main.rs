@@ -1,5 +1,4 @@
-use bit_vec::BitVec;
-use huffman::{huffman_decode, huffman_encode};
+use huffman::{decode, encode};
 use std::{env, error::Error, fs, path::Path, process};
 
 fn main() {
@@ -10,11 +9,11 @@ fn main() {
     });
     match args.command {
         Command::Encode => encode_file(args).unwrap_or_else(|err| {
-            eprintln!("Error encoding the file {}", err);
+            eprintln!("Error encoding the file: {}", err);
             process::exit(1);
         }),
         Command::Decode => decode_file(args).unwrap_or_else(|err| {
-            eprintln!("Error decoding the file {}", err);
+            eprintln!("Error decoding the file: {}", err);
             process::exit(1);
         }),
     };
@@ -22,7 +21,7 @@ fn main() {
 
 fn encode_file(args: Args) -> Result<(), Box<dyn Error>> {
     let text = fs::read_to_string(args.input.as_ref())?;
-    let bits = huffman_encode(&text[..]);
+    let bits = encode(&text[..]);
     if let Some(path) = args.output {
         fs::write(path.as_ref(), bits.to_bytes())?;
     } else {
@@ -32,9 +31,8 @@ fn encode_file(args: Args) -> Result<(), Box<dyn Error>> {
 }
 
 fn decode_file(args: Args) -> Result<(), Box<dyn Error>> {
-    let bytes = fs::read(args.input.as_ref())?;
-    let bits = BitVec::from_bytes(&bytes);
-    let decoded_text = huffman_decode(bits);
+    let file = fs::File::open(args.input.as_ref())?;
+    let decoded_text = decode(file)?;
     if let Some(output) = args.output {
         fs::write(output.as_ref(), decoded_text)?;
     } else {
