@@ -50,6 +50,7 @@ impl Decoder {
         let mut spinner = ProgressSpinner::with_title("De-serializing tree...", self.verbose_level);
         let root = self.parse_node(bit_reader, &mut spinner)?;
         spinner.complete_with("Done.");
+        self.log(2, format!("{:#?}", root).as_str());
         Ok(root)
     }
 

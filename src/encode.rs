@@ -43,18 +43,15 @@ impl Encoder {
 
     fn write_to_file(
         &mut self,
-        serialized_text: BitVec,
-        serialized_tree: BitVec,
+        mut serialized_text: BitVec,
+        mut serialized_tree: BitVec,
     ) -> Result<(), io::Error> {
-        let mut spinner =
+        let spinner =
             ProgressSpinner::with_title("Writing compressed text to file...", self.verbose_level);
-        spinner.bump();
-        self.output_file
-            .write(&(self.text.chars().count() as u32).to_be_bytes())?;
-        spinner.bump();
-        self.output_file.write(&serialized_tree.to_bytes())?;
-        spinner.bump();
-        self.output_file.write(&serialized_text.to_bytes())?;
+        let mut bits = BitVec::from_bytes(&(self.text.chars().count() as u32).to_be_bytes());
+        bits.append(&mut serialized_tree);
+        bits.append(&mut serialized_text);
+        self.output_file.write(&bits.to_bytes())?;
         spinner.complete_with("Done.");
         Ok(())
     }
@@ -110,7 +107,9 @@ impl Encoder {
             priority_queue.push(node, priority as i64);
         }
         spinner.complete_with("Done.");
-        priority_queue.pop().unwrap().0
+        let root = priority_queue.pop().unwrap().0;
+        self.log(2, format!("{:#?}", root).as_str());
+        root
     }
 
     fn prioritize(&self, frequency_map: &HashMap<char, u32>) -> PriorityQueue<Node, i64> {
