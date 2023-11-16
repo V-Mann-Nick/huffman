@@ -31,11 +31,17 @@
     };
     cargoToml = builtins.fromTOML (builtins.readFile ./Cargo.toml);
   in {
-    packages.${system}.default = rustPlatform.buildRustPackage {
-      pname = cargoToml.package.name;
-      version = cargoToml.package.version;
-      src = ./.;
-      cargoLock.lockFile = ./Cargo.lock;
+    packages.${system} = rec {
+      default = rustPlatform.buildRustPackage {
+        pname = cargoToml.package.name;
+        version = cargoToml.package.version;
+        src = ./.;
+        cargoLock.lockFile = ./Cargo.lock;
+      };
+      image = pkgs.dockerTools.buildImage {
+        name = default.pname;
+        config.Entrypoint = ["${default}/bin/huf"];
+      };
     };
     devShells.${system}.default = pkgs.mkShell {
       buildInputs = [toolchain];
