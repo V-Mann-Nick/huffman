@@ -15,10 +15,16 @@
     system = "x86_64-linux";
     pkgs = nixpkgs.legacyPackages.${system};
     rust = fenix.packages.${system};
-    toolchain = rust.fromToolchainFile {
-      file = ./toolchain.toml;
-      sha256 = "sha256-rLP8+fTxnPHoR96ZJiCa/5Ans1OojI7MLsmSqR2ip8o=";
-    };
+    toolchain = rust.stable.withComponents [
+      "rustc"
+      "rust-std"
+      "cargo"
+      "rust-docs"
+      "rustfmt"
+      "clippy"
+      "rust-src"
+      "rust-analyzer"
+    ];
     rustPlatform = pkgs.makeRustPlatform {
       cargo = toolchain;
       rustc = toolchain;
