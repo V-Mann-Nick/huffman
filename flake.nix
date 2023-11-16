@@ -30,11 +30,12 @@
       rustc = toolchain;
     };
     cargoToml = builtins.fromTOML (builtins.readFile ./Cargo.toml);
+    pname = cargoToml.package.name;
+    version = cargoToml.package.version;
   in {
     packages.${system} = rec {
       default = rustPlatform.buildRustPackage {
-        pname = cargoToml.package.name;
-        version = cargoToml.package.version;
+        inherit pname version;
         src = ./.;
         cargoLock.lockFile = ./Cargo.lock;
       };
@@ -44,6 +45,7 @@
       };
     };
     devShells.${system}.default = pkgs.mkShell {
+      name = pname;
       buildInputs = [toolchain];
       RUST_SRC_PATH = "${toolchain}/lib/rustlib/src/rust/library";
     };
